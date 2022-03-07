@@ -26,7 +26,7 @@ DECLARE
                     END) AS PRIMARY_KEY
                    ,V.*
               FROM ALL_TAB_COLUMNS V
-             WHERE V.TABLE_NAME LIKE UPPER(TRIM('mam_items')) --UPPER(LV_TABLE_NAME)
+             WHERE V.TABLE_NAME LIKE UPPER(TRIM(LV_TABLE_NAME))
                    AND V.COLUMN_NAME NOT IN (
                                              --
                                              'CREATE_DATE'
@@ -61,10 +61,10 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('SELECT ');
 
   FOR C IN COLUMN_CURSOR /*( --
-                            
-                            --
-                            )
-                  */
+                              
+                              --
+                              )
+                    */
   LOOP
     DBMS_OUTPUT.PUT_LINE(LV_ADDITIVE || 'II.' || C.COLUMN_NAME);
     LV_ADDITIVE := ',';
