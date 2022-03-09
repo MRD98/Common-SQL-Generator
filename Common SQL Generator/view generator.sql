@@ -61,10 +61,10 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('SELECT ');
 
   FOR C IN COLUMN_CURSOR /*( --
-                              
-                              --
-                              )
-                    */
+                                
+                                --
+                                )
+                      */
   LOOP
     DBMS_OUTPUT.PUT_LINE(LV_ADDITIVE || 'II.' || C.COLUMN_NAME);
     LV_ADDITIVE := ',';
@@ -97,7 +97,13 @@ BEGIN
              INNER JOIN DBA_CONSTRAINTS CF
                 ON CF.R_CONSTRAINT_NAME = CT.CONSTRAINT_NAME
              WHERE CF.TABLE_NAME = LV_TABLE_NAME
-             ORDER BY CT.OWNER
+             ORDER BY CASE
+                         WHEN CT.OWNER = CF.OWNER THEN
+                          0
+                         ELSE
+                          1
+                       END
+                      ,CT.OWNER
                       ,CT.TABLE_NAME --
             )
   LOOP
@@ -127,6 +133,7 @@ BEGIN
       LV_ADDITIVE := ' AND ';
     END LOOP;
   END LOOP;
+  DBMS_OUTPUT.PUT_LINE('--WHERE');
   DBMS_OUTPUT.PUT_LINE(';');
   DBMS_OUTPUT.PUT_LINE('COMMENT ON TABLE MAM_' || LV_VIEW_NAME ||
                        '_VIW IS ' || CHR(39) || '?' || CHR(39) || '; ');

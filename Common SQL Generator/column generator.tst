@@ -1,5 +1,5 @@
 PL/SQL Developer Test script 3.0
-297
+323
 /*
 function index
   0: NO FUCTION
@@ -62,30 +62,56 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('SELECT ');
   END IF;
   FOR C IN ( --
-            SELECT V.*
-              FROM ALL_TAB_COLUMNS V
-             WHERE V.TABLE_NAME LIKE UPPER(LV_TABLE_NAME)
-                   AND V.COLUMN_NAME NOT IN (
-                                             --
-                                             'CREATE_DATE'
-                                            ,'CREATE_BY_DB_USER'
-                                            ,'CREATE_BY_APP_USER'
-                                            ,'LAST_UPDATE_DATE'
-                                            ,'LAST_UPDATE_BY_DB_USER'
-                                            ,'LAST_UPDATE_BY_APP_USER'
-                                            ,'LAST_CHANGE_TS'
-                                            ,'MODULE_NAME'
-                                            ,'OS_USERNAME'
-                                            ,'ATTACH_ID'
-                                            ,'JRN_OPERATION'
-                                            ,'JRN_DB_USER'
-                                            ,'JRN_DATETIME'
-                                            ,'JRN_PROGRAM'
-                                            ,'JRN_ID'
-                                            ,'JRN_APP_USER'
-                                            ,'JRN_OS_USER'
-                                             --
-                                             )
+            SELECT V1.TABLE_NAME
+                   ,V1.COLUMN_NAME
+                   ,V1.COLUMN_ID
+                   ,V1.DATA_TYPE
+                   ,V1.DATA_LENGTH
+                   ,V1.DATA_PRECISION
+              FROM ( --
+                     SELECT (CASE
+                               WHEN EXISTS
+                                (SELECT NULL
+                                       FROM ALL_CONSTRAINTS CC
+                                      INNER JOIN ALL_CONS_COLUMNS TC
+                                         ON TC.TABLE_NAME = CC.TABLE_NAME
+                                            AND
+                                            CC.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
+                                      WHERE CC.CONSTRAINT_TYPE = 'P'
+                                            AND CC.TABLE_NAME = V.TABLE_NAME
+                                            AND TC.COLUMN_NAME = V.COLUMN_NAME) THEN
+                                1
+                               ELSE
+                                0
+                             END) AS PRIMARY_KEY
+                            ,V.*
+                       FROM ALL_TAB_COLUMNS V
+                      WHERE V.TABLE_NAME LIKE UPPER(LV_TABLE_NAME)
+                            AND V.COLUMN_NAME NOT IN (
+                                                      --
+                                                      'CREATE_DATE'
+                                                     ,'CREATE_BY_DB_USER'
+                                                     ,'CREATE_BY_APP_USER'
+                                                     ,'LAST_UPDATE_DATE'
+                                                     ,'LAST_UPDATE_BY_DB_USER'
+                                                     ,'LAST_UPDATE_BY_APP_USER'
+                                                     ,'LAST_CHANGE_TS'
+                                                     ,'MODULE_NAME'
+                                                     ,'OS_USERNAME'
+                                                     ,'ATTACH_ID'
+                                                     ,'JRN_OPERATION'
+                                                     ,'JRN_DB_USER'
+                                                     ,'JRN_DATETIME'
+                                                     ,'JRN_PROGRAM'
+                                                     ,'JRN_ID'
+                                                     ,'JRN_APP_USER'
+                                                     ,'JRN_OS_USER'
+                                                      --
+                                                      )
+                     --
+                     ) V1
+             ORDER BY V1.PRIMARY_KEY DESC
+                      ,V1.COLUMN_ID
             --
             )
   LOOP
@@ -300,18 +326,19 @@ END;
 13
 SCHEMA_
 1
-﻿sup_backend
+﻿mam
 5
 OUTPUT_SCHEMA
-0
+1
+﻿mam
 5
 TABLE_NAME
 1
-﻿IMPORTED_ITEMS
+﻿mam_request_lines
 5
 TABLE_ALIAS
 1
-﻿t
+﻿l
 5
 NULL_FIELDS
 1
