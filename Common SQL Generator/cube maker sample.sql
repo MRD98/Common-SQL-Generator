@@ -19,8 +19,8 @@ BEGIN
             )
   LOOP
     DBMS_OUTPUT.PUT_LINE( --LV_ADDITIVE ||
-                         ',(SELECT SUM(X' || LV_CNTR ||
-                         '.QTY_PRIMARY_MTRAN) FROM MAM.MAM_MATERIAL_TRANSACTIONS X' ||
+                         ',(SELECT ABS(SUM(X' || LV_CNTR ||
+                         '.QTY_PRIMARY_MTRAN)) FROM MAM.MAM_MATERIAL_TRANSACTIONS X' ||
                          LV_CNTR || ' WHERE X' || LV_CNTR ||
                          '.MTYP_TRANSACTION_TYPE_ID IN (51) AND X' ||
                          LV_CNTR || '.ITEM_ITEM_ID_FOR =' || C.ITEM_ID ||
@@ -35,6 +35,7 @@ BEGIN
                          'NLS_CALENDAR=PERSIAN' || CHR(39) || ')) AS "' ||
                          C.COD_ITEM || '"');
     LV_ADDITIVE := ',';
+    LV_CNTR     := LV_CNTR + 1;
   END LOOP;
   DBMS_OUTPUT.PUT_LINE('FROM MAM.MAM_MATERIAL_TRANSACTIONS X
          WHERE X.MTYP_TRANSACTION_TYPE_ID IN (51)
