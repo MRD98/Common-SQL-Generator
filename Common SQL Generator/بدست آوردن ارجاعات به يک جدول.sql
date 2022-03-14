@@ -19,6 +19,7 @@ BEGIN
   FOR C IN ( --
             SELECT DISTINCT CTO.OWNER
                             ,CTO.TABLE_NAME
+                            ,CFROM.OWNER AS FO
               FROM DBA_CONSTRAINTS CFROM
              INNER JOIN DBA_CONSTRAINTS CTO
                 ON CTO.R_CONSTRAINT_NAME = CFROM.CONSTRAINT_NAME
@@ -27,7 +28,13 @@ BEGIN
                    (INSTR(CHR(39) || LV_RELATED_SCHEMAS || CHR(39)
                          ,UPPER(CTO.OWNER)) != 0 OR
                    LV_RELATED_SCHEMAS = CHR(39) || UPPER('all') || CHR(39))
-             ORDER BY CTO.TABLE_NAME
+             ORDER BY CASE
+                         WHEN CTO.OWNER = CFROM.OWNER THEN
+                          0
+                         ELSE
+                          1
+                       END
+                      ,CTO.TABLE_NAME
             --
             )
   LOOP
@@ -83,9 +90,9 @@ BEGIN
     LOOP
       IF NVL(LV_METHOD, 0) = 0
       THEN
-        DBMS_OUTPUT.PUT_LINE(LV_ADDITIVE ||
-                             ' CASE WHEN EXISTS (SELECT NULL FROM ' ||
-                             C.OWNER || '.' || C.TTABLE_NAME ||
+        DBMS_OUTPUT.PUT_LINE(LV_ADDITIVE || ' CASE WHEN EXISTS (SELECT ' ||
+                             CHR(39) || C.TTABLE_NAME || CHR(39) ||
+                             ' FROM ' || C.OWNER || '.' || C.TTABLE_NAME ||
                              ' T WHERE T.' || D.TCOLUMN_NAME || ' = II.' ||
                              D.FCOLUMN_NAME || ') THEN ''' || C.OWNER || '.' ||
                              C.TTABLE_NAME || ''' END AS T' ||
