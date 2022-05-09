@@ -3,6 +3,7 @@ DECLARE
   LV_METHOD     NUMBER := '&METHOD';
   --0: select "table name" 
   --1: select from related table 
+  --2: select "delete table name"
   --others: exists
   LV_SCHEMA          VARCHAR2(1000);
   LV_ADDITIVE        VARCHAR2(100);
@@ -45,7 +46,7 @@ BEGIN
   IF NVL(LV_METHOD, 0) = 0
   THEN
     DBMS_OUTPUT.PUT_LINE('SELECT ');
-  ELSIF NVL(LV_METHOD, 0) = 1
+  ELSIF NVL(LV_METHOD, 0) IN (1, 2)
   THEN
     DBMS_OUTPUT.PUT_LINE('SELECT ');
   ELSE
@@ -105,6 +106,18 @@ BEGIN
                              ' T WHERE T.' || D.TCOLUMN_NAME || ' = II.' ||
                              D.FCOLUMN_NAME || ') AS ' || C.TTABLE_NAME ||
                              TO_CHAR(C.RW));
+        LV_ADDITIVE := ',';
+      ELSIF NVL(LV_METHOD, 0) = 2
+      THEN
+        DBMS_OUTPUT.PUT_LINE(LV_ADDITIVE || ' CASE WHEN EXISTS (SELECT ' ||
+                             CHR(39) || C.TTABLE_NAME || CHR(39) ||
+                             ' FROM ' || C.OWNER || '.' || C.TTABLE_NAME ||
+                             ' T WHERE T.' || D.TCOLUMN_NAME || ' = II.' ||
+                             D.FCOLUMN_NAME || ') THEN ' || CHR(39) ||
+                             'DELETE ' || C.OWNER || '.' || C.TTABLE_NAME ||
+                             ' T WHERE T.' || D.TCOLUMN_NAME || ' = ' ||
+                             CHR(38) || CHR(38) || D.FCOLUMN_NAME || ';' ||
+                             CHR(39) || ' END AS T' || TO_CHAR(C.RW));
         LV_ADDITIVE := ',';
       ELSE
         DBMS_OUTPUT.PUT_LINE(LV_ADDITIVE || ' NOT EXISTS (SELECT 1 FROM ' ||

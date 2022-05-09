@@ -1,5 +1,5 @@
 PL/SQL Developer Test script 3.0
-323
+333
 /*
 function index
   0: NO FUCTION
@@ -202,7 +202,17 @@ BEGIN
           LV_ADDITIVE := ',';
           IF SUBSTR(C.COLUMN_NAME, 1, 4) = 'LKP_'
           THEN
-            DBMS_OUTPUT.PUT_LINE(LV_ADDITIVE ||
+            DBMS_OUTPUT.PUT_LINE(LV_ADDITIVE || CASE
+                                   WHEN LV_TABLE_ALIAS IS NULL THEN
+                                    ''
+                                   ELSE
+                                    LV_TABLE_ALIAS || '.'
+                                 END || C.COLUMN_NAME || ' || CASE WHEN '||CASE
+                                   WHEN LV_TABLE_ALIAS IS NULL THEN
+                                    ''
+                                   ELSE
+                                    LV_TABLE_ALIAS || '.'
+                                 END || C.COLUMN_NAME ||' IS NOT NULL THEN '': '' END || ' ||
                                  'APPS.APP_FND_LOOKUP_PKG.GET_FARSI_MEANING_FUN(UPPER(''' ||
                                  LV_TABLE_NAME || '''),UPPER(''' ||
                                  C.COLUMN_NAME || '''),' || CASE
@@ -334,7 +344,7 @@ OUTPUT_SCHEMA
 5
 TABLE_NAME
 1
-﻿mam_request_lines
+﻿MAM_REPLENISH_LINES
 5
 TABLE_ALIAS
 1
