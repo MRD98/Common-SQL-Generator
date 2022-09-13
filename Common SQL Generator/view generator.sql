@@ -29,16 +29,19 @@ DECLARE
              WHERE V.TABLE_NAME LIKE UPPER(TRIM(LV_TABLE_NAME))
                    AND V.COLUMN_NAME NOT IN (
                                              --
-                                             'CREATE_DATE'
+                                             '-'
+                                             /*
+                                            ,'ATTACH_ID'
+                                            ,'CREATE_DATE'
                                             ,'CREATE_BY_DB_USER'
                                             ,'CREATE_BY_APP_USER'
                                             ,'LAST_UPDATE_DATE'
                                             ,'LAST_UPDATE_BY_DB_USER'
                                             ,'LAST_UPDATE_BY_APP_USER'
+                                            */
                                             ,'LAST_CHANGE_TS'
                                             ,'MODULE_NAME'
                                             ,'OS_USERNAME'
-                                            ,'ATTACH_ID'
                                             ,'JRN_OPERATION'
                                             ,'JRN_DB_USER'
                                             ,'JRN_DATETIME'
@@ -155,7 +158,7 @@ BEGIN
                                Z.COMMENTS
                             END
                             
-                           ,'?')) || ';') AS CMNT
+                           ,'?')) ) AS CMNT
         INTO LV_COMMENT
         FROM ( --
               SELECT CC.TABLE_NAME

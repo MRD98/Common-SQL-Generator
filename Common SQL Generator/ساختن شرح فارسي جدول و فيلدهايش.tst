@@ -70,6 +70,6 @@ END;
 1
 TABLE_NAME
 1
-﻿MAM_FMAM97403_VIW
+﻿pur_packing_numbers_viw
 5
 0
