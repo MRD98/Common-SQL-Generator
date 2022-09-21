@@ -84,6 +84,7 @@ DECLARE
               0
            END AS SUBJECT_OF_FROM_TO
           ,UPPER('P_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 28)) AS PARAMETER_NAME
+          ,TC.TABLE_NAME || '.' || TC.COLUMN_NAME || '%TYPE' AS COLUMN_TYPE
           ,UPPER('SET_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 26)) AS SETTER_NAME
           ,UPPER('SET_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 21) ||
                  '_FROM') AS SETTER_FROM_NAME
@@ -198,28 +199,25 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('-- GETTER AND SETTER FOR ' || C.COLUMN_NAME ||
                          ' --------------------------------------');
     DBMS_OUTPUT.PUT_LINE('PROCEDURE ' || C.SETTER_NAME || '(' ||
-                         C.PARAMETER_NAME || ' ' || C.TABLE_NAME || '.' ||
-                         C.COLUMN_NAME || '%TYPE);--' || TO_CHAR(I) || '--');
+                         C.PARAMETER_NAME || ' ' || C.COLUMN_TYPE ||
+                         ');--' || TO_CHAR(I) || '--');
     IF (C.SUBJECT_OF_FROM_TO = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE('PROCEDURE ' || C.SETTER_FROM_NAME || '(' ||
-                           C.PARAMETER_NAME || ' ' || C.TABLE_NAME || '.' ||
-                           C.COLUMN_NAME || '%TYPE);--' || TO_CHAR(I) || '--');
+                           C.PARAMETER_NAME || ' ' || C.COLUMN_TYPE ||
+                           ');--' || TO_CHAR(I) || '--');
       DBMS_OUTPUT.PUT_LINE('PROCEDURE ' || C.SETTER_TO_NAME || '(' ||
-                           C.PARAMETER_NAME || ' ' || C.TABLE_NAME || '.' ||
-                           C.COLUMN_NAME || '%TYPE);--' || TO_CHAR(I) || '--');
+                           C.PARAMETER_NAME || ' ' || C.COLUMN_TYPE ||
+                           ');--' || TO_CHAR(I) || '--');
     END IF;
     DBMS_OUTPUT.PUT_LINE('FUNCTION ' || C.GETTER_NAME || ' RETURN ' ||
-                         C.TABLE_NAME || '.' || C.COLUMN_NAME ||
-                         '%TYPE;--' || TO_CHAR(I) || '--');
+                         C.COLUMN_TYPE || ';--' || TO_CHAR(I) || '--');
     IF (C.SUBJECT_OF_FROM_TO = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE('FUNCTION ' || C.GETTER_FROM_NAME || ' RETURN ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME ||
-                           '%TYPE;--' || TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || ';--' || TO_CHAR(I) || '--');
       DBMS_OUTPUT.PUT_LINE('FUNCTION ' || C.GETTER_TO_NAME || ' RETURN ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME ||
-                           '%TYPE;--' || TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || ';--' || TO_CHAR(I) || '--');
     END IF;
     I := I + 1;
   END LOOP;
@@ -232,8 +230,7 @@ BEGIN
   FOR C IN TABLE_COLUMNS
   LOOP
     DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                         C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                         TO_CHAR(I) || '--');
+                         C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
     DELIMITTER := ', ';
     I          := I + 1;
   END LOOP;
@@ -254,8 +251,7 @@ BEGIN
                             'IN OUT '
                          END ||
                          --
-                         C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                         TO_CHAR(I) || '--');
+                         C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
     DELIMITTER := ', ';
     I          := I + 1;
   END LOOP;
@@ -272,8 +268,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                           TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
       DELIMITTER := ', ';
     END IF;
     I := I + 1;
@@ -295,8 +290,7 @@ BEGIN
                             'IN OUT '
                          END ||
                          --
-                         C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                         TO_CHAR(I) || '--');
+                         C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
     DELIMITTER := ', ';
     I          := I + 1;
   END LOOP;
@@ -315,8 +309,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                           TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
       DELIMITTER := ', ';
     END IF;
     I := I + 1;
@@ -336,8 +329,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                           TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
       DELIMITTER := ', ';
     END IF;
     I := I + 1;
@@ -362,16 +354,14 @@ BEGIN
   I := 1;
   FOR C IN TABLE_COLUMNS
   LOOP
-    DBMS_OUTPUT.PUT_LINE(C.GLOBAL_VARIABLE_NAME || ' ' || C.TABLE_NAME || '.' ||
-                         C.COLUMN_NAME || '%TYPE;--' || TO_CHAR(I) || '--');
+    DBMS_OUTPUT.PUT_LINE(C.GLOBAL_VARIABLE_NAME || ' ' || C.COLUMN_TYPE ||
+                         ';--' || TO_CHAR(I) || '--');
     IF (C.SUBJECT_OF_FROM_TO = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE(C.GLOBAL_FROM_VARIABLE_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME ||
-                           '%TYPE;--' || TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || ';--' || TO_CHAR(I) || '--');
       DBMS_OUTPUT.PUT_LINE(C.GLOBAL_TO_VARIABLE_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME ||
-                           '%TYPE;--' || TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || ';--' || TO_CHAR(I) || '--');
     END IF;
     I := I + 1;
   END LOOP;
@@ -382,8 +372,8 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('-- GETTER AND SETTER FOR ' || C.COLUMN_NAME ||
                          ' --------------------------------------');
     DBMS_OUTPUT.PUT_LINE('PROCEDURE ' || C.SETTER_NAME || '(' ||
-                         C.PARAMETER_NAME || ' ' || C.TABLE_NAME || '.' ||
-                         C.COLUMN_NAME || '%TYPE) IS --' || TO_CHAR(I) || '--');
+                         C.PARAMETER_NAME || ' ' || C.COLUMN_TYPE ||
+                         ') IS --' || TO_CHAR(I) || '--');
     DBMS_OUTPUT.PUT_LINE('BEGIN');
     DBMS_OUTPUT.PUT_LINE(C.GLOBAL_VARIABLE_NAME || ':=' ||
                          C.PARAMETER_NAME || ';');
@@ -391,38 +381,35 @@ BEGIN
     IF (C.SUBJECT_OF_FROM_TO = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE('PROCEDURE ' || C.SETTER_FROM_NAME || '(' ||
-                           C.PARAMETER_NAME || ' ' || C.TABLE_NAME || '.' ||
-                           C.COLUMN_NAME || '%TYPE) IS --' || TO_CHAR(I) || '--');
+                           C.PARAMETER_NAME || ' ' || C.COLUMN_TYPE ||
+                           ') IS --' || TO_CHAR(I) || '--');
       DBMS_OUTPUT.PUT_LINE('BEGIN');
       DBMS_OUTPUT.PUT_LINE(C.GLOBAL_FROM_VARIABLE_NAME || ':=' ||
                            C.PARAMETER_NAME || ';');
       DBMS_OUTPUT.PUT_LINE('END;');
       DBMS_OUTPUT.PUT_LINE('PROCEDURE ' || C.SETTER_TO_NAME || '(' ||
-                           C.PARAMETER_NAME || ' ' || C.TABLE_NAME || '.' ||
-                           C.COLUMN_NAME || '%TYPE) IS --' || TO_CHAR(I) || '--');
+                           C.PARAMETER_NAME || ' ' || C.COLUMN_TYPE ||
+                           ') IS --' || TO_CHAR(I) || '--');
       DBMS_OUTPUT.PUT_LINE('BEGIN');
       DBMS_OUTPUT.PUT_LINE(C.GLOBAL_TO_VARIABLE_NAME || ':=' ||
                            C.PARAMETER_NAME || ';');
       DBMS_OUTPUT.PUT_LINE('END;');
     END IF;
     DBMS_OUTPUT.PUT_LINE('FUNCTION ' || C.GETTER_NAME || ' RETURN ' ||
-                         C.TABLE_NAME || '.' || C.COLUMN_NAME ||
-                         '%TYPE IS--' || TO_CHAR(I) || '--');
+                         C.COLUMN_TYPE || ' IS--' || TO_CHAR(I) || '--');
     DBMS_OUTPUT.PUT_LINE('BEGIN');
     DBMS_OUTPUT.PUT_LINE('RETURN ' || C.GLOBAL_VARIABLE_NAME || ';');
     DBMS_OUTPUT.PUT_LINE('END;');
     IF (C.SUBJECT_OF_FROM_TO = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE('FUNCTION ' || C.GETTER_FROM_NAME || ' RETURN ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME ||
-                           '%TYPE IS--' || TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || ' IS--' || TO_CHAR(I) || '--');
       DBMS_OUTPUT.PUT_LINE('BEGIN');
       DBMS_OUTPUT.PUT_LINE('RETURN ' || C.GLOBAL_FROM_VARIABLE_NAME || ';');
       DBMS_OUTPUT.PUT_LINE('END;');
     
       DBMS_OUTPUT.PUT_LINE('FUNCTION ' || C.GETTER_TO_NAME || ' RETURN ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME ||
-                           '%TYPE IS--' || TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || ' IS--' || TO_CHAR(I) || '--');
       DBMS_OUTPUT.PUT_LINE('BEGIN');
       DBMS_OUTPUT.PUT_LINE('RETURN ' || C.GLOBAL_TO_VARIABLE_NAME || ';');
       DBMS_OUTPUT.PUT_LINE('END;');
@@ -438,8 +425,7 @@ BEGIN
   FOR C IN TABLE_COLUMNS
   LOOP
     DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                         C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                         TO_CHAR(I) || '--');
+                         C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
     DELIMITTER := ', ';
     I          := I + 1;
   END LOOP;
@@ -464,8 +450,7 @@ BEGIN
                             'IN OUT '
                          END ||
                          --
-                         C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                         TO_CHAR(I) || '--');
+                         C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
     DELIMITTER := ', ';
     I          := I + 1;
   END LOOP;
@@ -535,8 +520,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                           TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || ' --' || TO_CHAR(I) || '--');
       DELIMITTER := ', ';
     END IF;
     I := I + 1;
@@ -585,8 +569,7 @@ BEGIN
                             'IN OUT '
                          END ||
                          --
-                         C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                         TO_CHAR(I) || '--');
+                         C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
     DELIMITTER := ', ';
     I          := I + 1;
   END LOOP;
@@ -649,23 +632,8 @@ BEGIN
   --ADD_TO_FILTER_VIEW
   DBMS_OUTPUT.PUT_LINE('-- PROCEDURE CREATE_FILTER_VIEW -----------------------------------------');
   DBMS_OUTPUT.PUT_LINE('PROCEDURE CREATE_FILTER_VIEW(--');
-  DBMS_OUTPUT.PUT_LINE('P_FILTER_VIEW_NAME  VARCHAR2');
-  -- <parameters
-  DELIMITTER := ',';
-  I          := 1;
-  FOR C IN TABLE_COLUMNS
-  LOOP
-    IF (C.IS_PK = 1)
-    THEN
-      DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                           TO_CHAR(I) || '--');
-      DELIMITTER := ', ';
-    END IF;
-    I := I + 1;
-  END LOOP;
-  --parameters>
-  DBMS_OUTPUT.PUT_LINE('--');
+  DBMS_OUTPUT.PUT_LINE('P_FILTER_VIEW_NAME  VARCHAR2, COMMA_SEPARATED_IDS VARCHAR2');
+
   DBMS_OUTPUT.PUT_LINE(') IS');
   DBMS_OUTPUT.PUT_LINE('LV_SQL VARCHAR2(4000);');
   DBMS_OUTPUT.PUT_LINE('BEGIN');
@@ -678,7 +646,7 @@ BEGIN
     DELIMITTER := ' || '',';
   END LOOP;
   --edit fields>
-  DBMS_OUTPUT.PUT_LINE('|| ''WHERE ''');
+  DBMS_OUTPUT.PUT_LINE('|| '' FROM ' || LV_TABLENAME || ' WHERE ''');
   -- <where clause
   DELIMITTER := '||';
   FOR C IN TABLE_COLUMNS
@@ -686,7 +654,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE(DELIMITTER || '''' || C.COLUMN_NAME ||
-                           ' IN(-1,''||' || C.PARAMETER_NAME || '||'')''');
+                           ' IN(-1''|| COMMA_SEPARATED_IDS ||'')''');
       DELIMITTER := '||'' AND ''';
     END IF;
   END LOOP;
@@ -708,8 +676,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                           TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
       DELIMITTER := ', ';
     END IF;
     I := I + 1;
@@ -725,8 +692,7 @@ BEGIN
   LOOP
     IF (C.IS_PK = 1)
     THEN
-      DBMS_OUTPUT.PUT_LINE(C.LOCAL_VARIABLE_NAME || ' ' || C.TABLE_NAME || '.' ||
-                           C.COLUMN_NAME || '%TYPE;');
+      DBMS_OUTPUT.PUT_LINE(C.LOCAL_VARIABLE_NAME || ' ' || C.COLUMN_TYPE || ';');
     END IF;
   END LOOP;
   --local variables>
@@ -780,7 +746,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE('LV_SQL:=LV_SQL' || '||'',''||' ||
-                           C.PARAMETER_NAME);
+                           C.LOCAL_VARIABLE_NAME);
     END IF;
   END LOOP;
   DBMS_OUTPUT.PUT_LINE(';');
@@ -844,8 +810,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.PARAMETER_NAME || ' ' ||
-                           C.TABLE_NAME || '.' || C.COLUMN_NAME || '%TYPE' || '--' ||
-                           TO_CHAR(I) || '--');
+                           C.COLUMN_TYPE || '--' || TO_CHAR(I) || '--');
       DELIMITTER := ', ';
     END IF;
     I := I + 1;
@@ -861,8 +826,7 @@ BEGIN
   LOOP
     IF (C.IS_PK = 1)
     THEN
-      DBMS_OUTPUT.PUT_LINE(C.LOCAL_VARIABLE_NAME || ' ' || C.TABLE_NAME || '.' ||
-                           C.COLUMN_NAME || '%TYPE;');
+      DBMS_OUTPUT.PUT_LINE(C.LOCAL_VARIABLE_NAME || ' ' || C.COLUMN_TYPE || ';');
     END IF;
   END LOOP;
   --local variables>
@@ -908,7 +872,6 @@ BEGIN
       DELIMITTER := ' AND ';
     END IF;
   END LOOP;
-  --  LV_ITEM_ID != P_ID
   DBMS_OUTPUT.PUT_LINE('THEN');
   -- <parameters
   FOR C IN TABLE_COLUMNS
@@ -916,7 +879,7 @@ BEGIN
     IF (C.IS_PK = 1)
     THEN
       DBMS_OUTPUT.PUT_LINE('LV_SQL:=LV_SQL' || '||'',''||' ||
-                           C.PARAMETER_NAME);
+                           C.LOCAL_VARIABLE_NAME);
     END IF;
   END LOOP;
   DBMS_OUTPUT.PUT_LINE(';');
@@ -925,47 +888,6 @@ BEGIN
 
   DBMS_OUTPUT.PUT_LINE('END LOOP;');
   DBMS_OUTPUT.PUT_LINE('CLOSE LV_FILTER;');
-  DBMS_OUTPUT.PUT_LINE('BEGIN');
-  DBMS_OUTPUT.PUT_LINE('SELECT 1');
-  DBMS_OUTPUT.PUT_LINE('INTO LV_EXISTS');
-  DBMS_OUTPUT.PUT_LINE('FROM DUAL');
-  DBMS_OUTPUT.PUT_LINE('WHERE EXISTS (SELECT NULL FROM ');
-  DBMS_OUTPUT.PUT_LINE(LV_TABLENAME || ' T ');
-  DBMS_OUTPUT.PUT_LINE('WHERE');
-  -- <parameters
-  DELIMITTER := '';
-  I          := 1;
-  FOR C IN TABLE_COLUMNS
-  LOOP
-    IF (C.IS_PK = 1)
-    THEN
-      DBMS_OUTPUT.PUT_LINE(DELIMITTER || C.COLUMN_NAME || '=');
-      DBMS_OUTPUT.PUT_LINE(C.PARAMETER_NAME || '--' || TO_CHAR(I) || '--');
-      DELIMITTER := ' AND ';
-    END IF;
-    I := I + 1;
-  END LOOP;
-  --parameters>
-  DBMS_OUTPUT.PUT_LINE(');');
-  DBMS_OUTPUT.PUT_LINE('EXCEPTION');
-  DBMS_OUTPUT.PUT_LINE('WHEN NO_DATA_FOUND THEN');
-  DBMS_OUTPUT.PUT_LINE('NULL;');
-  DBMS_OUTPUT.PUT_LINE('END;');
-  DBMS_OUTPUT.PUT_LINE('LV_EXISTS := NVL(LV_EXISTS, 0);');
-  DBMS_OUTPUT.PUT_LINE('IF LV_EXISTS = 1');
-  DBMS_OUTPUT.PUT_LINE('THEN');
-  -- <parameters
-  FOR C IN TABLE_COLUMNS
-  LOOP
-    IF (C.IS_PK = 1)
-    THEN
-      DBMS_OUTPUT.PUT_LINE('LV_SQL:=LV_SQL' || '||'',''||' ||
-                           C.PARAMETER_NAME);
-    END IF;
-  END LOOP;
-  DBMS_OUTPUT.PUT_LINE(';');
-  --parameters>
-  DBMS_OUTPUT.PUT_LINE('END IF;');
   DBMS_OUTPUT.PUT_LINE('CREATE_FILTER_VIEW(P_FILTER_VIEW_NAME, LV_SQL);');
   DBMS_OUTPUT.PUT_LINE('END;');
   --
