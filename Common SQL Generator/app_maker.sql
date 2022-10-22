@@ -74,42 +74,54 @@ DECLARE
        ORDER BY T.TABLE_NAME;
   */
   CURSOR TABLE_COLUMNS IS
-    SELECT TC.TABLE_NAME
-          ,TC.COLUMN_NAME
-          ,CASE
-             WHEN TC.DATA_TYPE IN ('NUMBER', 'DATE')
-                  AND CC.TABLE_NAME IS NULL THEN
-              1
-             ELSE
-              0
-           END AS SUBJECT_OF_FROM_TO
-          ,UPPER('P_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 28)) AS PARAMETER_NAME
-          ,TC.TABLE_NAME || '.' || TC.COLUMN_NAME || '%TYPE' AS COLUMN_TYPE
-          ,UPPER('SET_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 26)) AS SETTER_NAME
-          ,UPPER('SET_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 21) ||
-                 '_FROM') AS SETTER_FROM_NAME
-          ,UPPER('SET_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 23) ||
-                 '_TO') AS SETTER_TO_NAME
-          ,UPPER('GET_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 26)) AS GETTER_NAME
-          ,UPPER('GET_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 21) ||
-                 '_FROM') AS GETTER_FROM_NAME
-          ,UPPER('GET_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 23) ||
-                 '_TO') AS GETTER_TO_NAME
-          ,UPPER('gV_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 27)) AS GLOBAL_VARIABLE_NAME
-          ,UPPER('gV_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 22) ||
-                 '_FROM') AS GLOBAL_FROM_VARIABLE_NAME
-          ,UPPER('gV_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 24) ||
-                 '_TO') AS GLOBAL_TO_VARIABLE_NAME
-          ,UPPER('lV_' || MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 27)) AS LOCAL_VARIABLE_NAME
-          ,TC.DATA_TYPE
-          ,TC.DATA_LENGTH
-          ,PK.IS_PK
-          ,CASE
-             WHEN CC.TABLE_NAME IS NULL THEN
-              0
-             ELSE
-              1
-           END AS IS_ON_FK
+    SELECT DISTINCT TC.COLUMN_ID
+                   ,TC.TABLE_NAME
+                   ,TC.COLUMN_NAME
+                   ,CASE
+                      WHEN TC.DATA_TYPE IN ('NUMBER', 'DATE')
+                           AND CC.TABLE_NAME IS NULL THEN
+                       1
+                      ELSE
+                       0
+                    END AS SUBJECT_OF_FROM_TO
+                   ,UPPER('P_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 28)) AS PARAMETER_NAME
+                   ,TC.TABLE_NAME || '.' || TC.COLUMN_NAME || '%TYPE' AS COLUMN_TYPE
+                   ,UPPER('SET_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 26)) AS SETTER_NAME
+                   ,UPPER('SET_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 21) ||
+                          '_FROM') AS SETTER_FROM_NAME
+                   ,UPPER('SET_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 23) ||
+                          '_TO') AS SETTER_TO_NAME
+                   ,UPPER('GET_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 26)) AS GETTER_NAME
+                   ,UPPER('GET_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 21) ||
+                          '_FROM') AS GETTER_FROM_NAME
+                   ,UPPER('GET_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 23) ||
+                          '_TO') AS GETTER_TO_NAME
+                   ,UPPER('gV_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 27)) AS GLOBAL_VARIABLE_NAME
+                   ,UPPER('gV_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 22) ||
+                          '_FROM') AS GLOBAL_FROM_VARIABLE_NAME
+                   ,UPPER('gV_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 24) ||
+                          '_TO') AS GLOBAL_TO_VARIABLE_NAME
+                   ,UPPER('lV_' ||
+                          MAM_REMOVE_VOWELS_FUN(TC.COLUMN_NAME, 27)) AS LOCAL_VARIABLE_NAME
+                   ,TC.DATA_TYPE
+                   ,TC.DATA_LENGTH
+                   ,PK.IS_PK
+                   ,CASE
+                      WHEN CC.TABLE_NAME IS NULL THEN
+                       0
+                      ELSE
+                       1
+                    END AS IS_ON_FK
       FROM ALL_TAB_COLUMNS TC
       LEFT OUTER JOIN ( --
                        SELECT TO_NUMBER(CASE
