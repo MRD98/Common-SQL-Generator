@@ -1,0 +1,12 @@
+SELECT HH24
+      ,CNT
+      ,ROUND(CNT / SUM(CNT) OVER(PARTITION BY NULL) * 100, 2) || ' %' AS TRANSACTION_PERCENTAGE
+  FROM ( --
+        SELECT TO_CHAR(X.CREATE_DATE, 'hh24') AS HH24
+               ,COUNT(1) AS CNT
+          FROM MAM.MAM_MATERIAL_TRANSACTIONS X
+         GROUP BY TO_CHAR(X.CREATE_DATE, 'hh24')
+        --
+        )
+ GROUP BY HH24
+         ,CNT
