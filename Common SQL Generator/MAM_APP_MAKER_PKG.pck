@@ -463,11 +463,11 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN LV_RESULT;
   
   END;
-  FUNCTION CREATE_CTRL_PACKAGE_DECLARATION( --
-                                           TABLE_NAME   VARCHAR2
-                                          ,SPEC_OR_BODY VARCHAR2
-                                           --
-                                           ) RETURN VARCHAR2 IS
+  FUNCTION CREATE_CTRL_PACKAGE_DECLARATN( --
+                                         TABLE_NAME   VARCHAR2
+                                        ,SPEC_OR_BODY VARCHAR2
+                                         --
+                                         ) RETURN VARCHAR2 IS
     LV_RESULT VARCHAR2(100);
   BEGIN
     IF UPPER(TRIM(NVL(SPEC_OR_BODY, 'spec'))) = UPPER(TRIM('spec'))
@@ -925,6 +925,68 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
 
+  FUNCTION CREATE_GET_DESCRIPTION_DCLRTN RETURN VARCHAR2 IS
+    LV_RESULT  VARCHAR2(32767);
+    DELIMITTER VARCHAR2(10);
+    I          NUMBER;
+  BEGIN
+    LV_RESULT  := LV_RESULT ||
+                  '-- GET_DESCRIPTION --------------------------------------' ||
+                  CHR(10);
+    LV_RESULT  := LV_RESULT || 'FUNCTION GET_DESCRIPTION(--' || CHR(10);
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(C_IS_PK)
+    LOOP
+      IF (C.IS_PK = 1)
+      THEN
+        LV_RESULT  := LV_RESULT || DELIMITTER ||
+                      CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ' ' ||
+                      CREATE_PARAMETER_TYPE(C.COLUMN_NAME) || '--' ||
+                      TO_CHAR(I) || '--' || CHR(10);
+        DELIMITTER := ', ';
+      END IF;
+      I := I + 1;
+    END LOOP;
+    LV_RESULT := LV_RESULT || ') RETURN VARCHAR2';
+    RETURN UPPER(TRIM(LV_RESULT));
+  END;
+
+  FUNCTION CREATE_GET_DESCRIPTION_BODY RETURN VARCHAR2 IS
+    LV_RESULT  VARCHAR2(32767);
+    DELIMITTER VARCHAR2(10);
+    I          NUMBER;
+  BEGIN
+    LV_RESULT := LV_RESULT || CREATE_GET_DESCRIPTION_DCLRTN || ' is ' ||
+                 CHR(10) || 'LV_RESULT VARCHAR2(1000):='''';' || CHR(10);
+    LV_RESULT := LV_RESULT || 'begin' || CHR(10) || 'begin';
+    LV_RESULT := LV_RESULT || CHR(10) || 'select null into lv_result ';
+  
+    LV_RESULT := LV_RESULT || CHR(10) || ' from ' || GV_TABLENAME ||
+                 ' WHERE ';
+    -- <WHERE parameters
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(C_IS_PK)
+    LOOP
+      IF (C.IS_PK = 1)
+      THEN
+        LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER || C.COLUMN_NAME || '=' ||
+                      CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
+                      TO_CHAR(I) || '--';
+        DELIMITTER := ' AND ';
+      END IF;
+      I := I + 1;
+    END LOOP;
+    --WHERE parameters>
+    LV_RESULT := LV_RESULT || CHR(10) || ';' || CHR(10) || 'EXCEPTION' ||
+                 CHR(10) || ' WHEN OTHERS THEN ' || CHR(10) ||
+                 'LV_RESULT := ''{—òÊ—œ ‘‰«”«ÌÌ ‰‘œ}'';';
+    LV_RESULT := LV_RESULT || CHR(10) || 'END;    RETURN LV_RESULT;' ||
+                 CHR(10) || 'end;';
+    RETURN UPPER(TRIM(LV_RESULT));
+  END;
+
   FUNCTION CREATE_CHECK_DATA_DECLARATION RETURN VARCHAR2 IS
     LV_RESULT  VARCHAR2(32767);
     DELIMITTER VARCHAR2(10);
@@ -948,6 +1010,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     LV_RESULT := LV_RESULT || ') RETURN VARCHAR2';
     RETURN UPPER(TRIM(LV_RESULT));
   END;
+
   FUNCTION CREATE_CHECK_DATA_BODY RETURN VARCHAR2 IS
     LV_RESULT  VARCHAR2(32767);
     DELIMITTER VARCHAR2(10);
@@ -1139,13 +1202,13 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
       LV_RESULT  := LV_RESULT || DELIMITTER ||
                     CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ' ' ||
                    /*
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                --
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 CASE
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   WHEN C.IS_PK = 1 THEN
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    'IN OUT '
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 END ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                --
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        --
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         CASE
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           WHEN C.IS_PK = 1 THEN
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            'IN OUT '
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         END ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        --
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        */
                     CREATE_PARAMETER_TYPE(C.COLUMN_NAME) || '--' ||
                     TO_CHAR(I) || '--' || CHR(10);
       DELIMITTER := ', ';
@@ -1668,25 +1731,29 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
       IF LV_RESULT IS NULL
       THEN
         LV_SQL_SPEC := LV_SQL_SPEC ||
-                       CREATE_CTRL_PACKAGE_DECLARATION( --
-                                                       TABLE_NAME
-                                                      ,'SPEC'
-                                                       --
-                                                       );
+                       CREATE_CTRL_PACKAGE_DECLARATN( --
+                                                     TABLE_NAME
+                                                    ,'SPEC'
+                                                     --
+                                                     );
         LV_SQL_BODY := LV_SQL_BODY ||
-                       CREATE_CTRL_PACKAGE_DECLARATION( --
-                                                       TABLE_NAME
-                                                      ,'BODY'
-                                                       --
-                                                       );
+                       CREATE_CTRL_PACKAGE_DECLARATN( --
+                                                     TABLE_NAME
+                                                    ,'BODY'
+                                                     --
+                                                     );
         --LV_SQL_BODY  := LV_SQL_BODY || CHR(10) || CREATE_GLOBAL_VARIABLES_BODY;
         --LV_SQL_SPEC  := LV_SQL_SPEC || CHR(10) || CREATE_GETTER_SETTER_SPEC;
         --LV_SQL_BODY  := LV_SQL_BODY || CHR(10) || CREATE_GETTER_SETTER_BODY;
         LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) ||
                        CREATE_CHECK_LOCK_DECLARATION || ';';
         LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) ||
+                       CREATE_GET_DESCRIPTION_DCLRTN || ';';
+        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) ||
                        CREATE_CHECK_DATA_DECLARATION || ';';
       
+        LV_SQL_BODY := LV_SQL_BODY || CHR(10) ||
+                       CREATE_GET_DESCRIPTION_BODY;
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_CHECK_LOCK_BODY;
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_CHECK_DATA_BODY;
         LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || UPPER('end;');
@@ -1822,14 +1889,15 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
       END;
       IF LV_RESULT IS NULL
       THEN
-        DBMS_OUTPUT.PUT_LINE(CREATE_CTRL_PACKAGE_DECLARATION( --
-                                                             TABLE_NAME
-                                                            ,'SPEC'
-                                                             --
-                                                             )
+        DBMS_OUTPUT.PUT_LINE(CREATE_CTRL_PACKAGE_DECLARATN( --
+                                                           TABLE_NAME
+                                                          ,'SPEC'
+                                                           --
+                                                           )
                              --
                              );
         --DBMS_OUTPUT.PUT_LINE(CREATE_GETTER_SETTER_SPEC);
+        DBMS_OUTPUT.PUT_LINE(CREATE_GET_DESCRIPTION_DCLRTN || ';');
         DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_LOCK_DECLARATION || ';');
         DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_DATA_DECLARATION || ';');
         DBMS_OUTPUT.PUT_LINE(UPPER('end;'));
@@ -1851,13 +1919,14 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     END IF;
     IF LV_RESULT IS NULL
     THEN
-      DBMS_OUTPUT.PUT_LINE(CREATE_CTRL_PACKAGE_DECLARATION( --
-                                                           TABLE_NAME
-                                                          ,'BODY'
-                                                           --
-                                                           )
+      DBMS_OUTPUT.PUT_LINE(CREATE_CTRL_PACKAGE_DECLARATN( --
+                                                         TABLE_NAME
+                                                        ,'BODY'
+                                                         --
+                                                         )
                            --
                            );
+      DBMS_OUTPUT.PUT_LINE(CREATE_GET_DESCRIPTION_BODY);
       DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_LOCK_BODY);
       DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_DATA_BODY);
       DBMS_OUTPUT.PUT_LINE(UPPER('end;'));
