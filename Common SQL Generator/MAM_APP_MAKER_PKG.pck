@@ -852,7 +852,6 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
         LV_RESULT  := LV_RESULT || DELIMITTER ||
                       CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || ' ' ||
                       CREATE_COLUMN_TYPE(C.COLUMN_NAME) || ';' || CHR(10);
-        DELIMITTER := ', ';
       END IF;
       I := I + 1;
     END LOOP;
