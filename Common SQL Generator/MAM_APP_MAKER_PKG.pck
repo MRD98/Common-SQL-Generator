@@ -5,9 +5,11 @@ CREATE OR REPLACE PACKAGE MAM_APP_MAKER_PKG IS
                                    TABLE_NAME VARCHAR2 --
                                    ) RETURN VARCHAR2;
   FUNCTION MAKE( --
-                TABLE_NAME        VARCHAR2
-               ,CTRL_PACKAGE_NAME OUT VARCHAR2
-               ,APP_PACKAGE_NAME  OUT VARCHAR2
+                TABLE_NAME          VARCHAR2
+               ,CTRL_PACKAGE_NAME   OUT VARCHAR2
+               ,CREATE_CTRL_PACKAGE NUMBER DEFAULT 1
+               ,APP_PACKAGE_NAME    OUT VARCHAR2
+               ,CREATE_APP_PACKAGE  NUMBER DEFAULT 1
                 --
                 ) RETURN VARCHAR2;
 
@@ -619,7 +621,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   END;
 
   FUNCTION CREATE_GETTER_SETTER_SPEC RETURN VARCHAR2 IS
-    LV_RESULT VARCHAR2(32767);
+    LV_RESULT VARCHAR2(32672);
     I         NUMBER;
   BEGIN
     --GETTER_AND_SETTER
@@ -676,7 +678,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_GETTER_SETTER_BODY RETURN VARCHAR2 IS
-    LV_RESULT VARCHAR2(32767);
+    LV_RESULT VARCHAR2(32672);
     I         NUMBER;
   BEGIN
     --GETTER_AND_SETTER
@@ -764,7 +766,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_GLOBAL_VARIABLES_BODY RETURN VARCHAR2 IS
-    LV_RESULT VARCHAR2(32767);
+    LV_RESULT VARCHAR2(32672);
     I         NUMBER;
   BEGIN
     --GETTER_AND_SETTER
@@ -811,7 +813,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_CHECK_LOCK_DECLARATION RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -838,7 +840,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   END;
 
   FUNCTION CREATE_CHECK_LOCK_BODY RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -849,9 +851,9 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     LOOP
       IF (C.IS_PK = 1)
       THEN
-        LV_RESULT  := LV_RESULT || DELIMITTER ||
-                      CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || ' ' ||
-                      CREATE_COLUMN_TYPE(C.COLUMN_NAME) || ';' || CHR(10);
+        LV_RESULT := LV_RESULT || DELIMITTER ||
+                     CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || ' ' ||
+                     CREATE_COLUMN_TYPE(C.COLUMN_NAME) || ';' || CHR(10);
       END IF;
       I := I + 1;
     END LOOP;
@@ -925,7 +927,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   END;
 
   FUNCTION CREATE_GET_DESCRIPTION_DCLRTN RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -952,7 +954,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   END;
 
   FUNCTION CREATE_GET_DESCRIPTION_BODY RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -987,7 +989,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   END;
 
   FUNCTION CREATE_CHECK_DATA_DECLARATION RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -1011,7 +1013,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   END;
 
   FUNCTION CREATE_CHECK_DATA_BODY RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
   BEGIN
     LV_RESULT  := LV_RESULT || CREATE_CHECK_DATA_DECLARATION || ' is ' ||
@@ -1035,8 +1037,68 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
                  'end;';
     RETURN UPPER(TRIM(LV_RESULT));
   END;
+
+  FUNCTION CREATE_INITIATOR_DECLARATION RETURN VARCHAR2 IS
+    LV_RESULT  VARCHAR2(32672);
+    DELIMITTER VARCHAR2(10);
+    I          NUMBER;
+  BEGIN
+    LV_RESULT  := LV_RESULT ||
+                  '-- INITIATOR --------------------------------------' ||
+                  CHR(10);
+    LV_RESULT  := LV_RESULT || 'function INITIATOR(--' || CHR(10);
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(NULL)
+    LOOP
+      LV_RESULT  := LV_RESULT || DELIMITTER ||
+                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ' IN OUT ' ||
+                    CREATE_PARAMETER_TYPE(C.COLUMN_NAME) || '--' ||
+                    TO_CHAR(I) || '--' || CHR(10);
+      DELIMITTER := ', ';
+      I          := I + 1;
+    END LOOP;
+    LV_RESULT := LV_RESULT || ')return varchar2 ';
+    RETURN UPPER(TRIM(LV_RESULT));
+  END;
+
+  FUNCTION CREATE_INITIATOR_BODY RETURN VARCHAR2 IS
+    LV_RESULT  VARCHAR2(32672);
+    DELIMITTER VARCHAR2(10);
+    I          NUMBER;
+  BEGIN
+    LV_RESULT  := LV_RESULT || CREATE_INITIATOR_DECLARATION || ' is ' ||
+                  CHR(10) || 'LV_RESULT VARCHAR2(1000):='''';' || 'begin';
+    LV_RESULT  := LV_RESULT || CHR(10);
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(NULL)
+    LOOP
+      IF C.IS_PK = 1
+      THEN
+        LV_RESULT := LV_RESULT || ' if ' ||
+                     CREATE_PARAMETER_NAME(C.COLUMN_NAME) ||
+                     ' is null then ' ||
+                     CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ':=' ||
+                     C.TABLE_NAME || '_seq.nextval;end if;';
+      ELSE
+        NULL;
+        /*
+        LV_RESULT := LV_RESULT || DELIMITTER ||
+                     CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ':=' ||
+                     CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ';' || '--' ||
+                     TO_CHAR(I) || CHR(10);
+        */
+      END IF;
+      DELIMITTER := '';
+      I          := I + 1;
+    END LOOP;
+    LV_RESULT := LV_RESULT || 'return lv_result; end;';
+    RETURN UPPER(TRIM(LV_RESULT));
+  END;
+
   FUNCTION CREATE_ADD_DECLARATION RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -1065,21 +1127,52 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_ADD_BODY RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
-    LV_RESULT := LV_RESULT || CREATE_ADD_DECLARATION || ' is ' || CHR(10) ||
-                 'LV_RESULT VARCHAR2(1000):='''';' || CHR(10) || 'begin';
-    LV_RESULT := LV_RESULT || CHR(10) || 'LV_RESULT:=' ||
-                 CREATE_CTRL_PACKAGE_NAME(GV_TABLENAME) || '.CHECK_DATA(--';
+    LV_RESULT  := LV_RESULT || CREATE_ADD_DECLARATION || ' is ' || CHR(10) ||
+                  'LV_RESULT VARCHAR2(1000):='''';';
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(NULL)
+    LOOP
+      LV_RESULT  := LV_RESULT || DELIMITTER ||
+                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || ' ' ||
+                    CREATE_PARAMETER_TYPE(C.COLUMN_NAME) || ':=' ||
+                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ';--' ||
+                    TO_CHAR(I) || CHR(10);
+      DELIMITTER := '';
+      I          := I + 1;
+    END LOOP;
+  
+    LV_RESULT := LV_RESULT || CHR(10) || 'begin' || CHR(10);
+    LV_RESULT := LV_RESULT || 'lv_result:=' ||
+                 CREATE_CTRL_PACKAGE_NAME(GV_TABLENAME) || '.initiator(--';
+    -- <parameters to initiator
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(NULL)
+    LOOP
+      LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER ||
+                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
+                    TO_CHAR(I) || '--';
+      DELIMITTER := ', ';
+      I          := I + 1;
+    END LOOP;
+    --parameters to initiator>
+    LV_RESULT := LV_RESULT || CHR(10) || ');';
+  
+    LV_RESULT := LV_RESULT || CHR(10) || 'LV_RESULT:=';
+    LV_RESULT := LV_RESULT || CREATE_CTRL_PACKAGE_NAME(GV_TABLENAME) ||
+                 '.CHECK_DATA(--';
     -- <parameters to check
     DELIMITTER := '';
     I          := 1;
     FOR C IN TABLE_COLUMNS(NULL)
     LOOP
       LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER ||
-                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
+                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
                     TO_CHAR(I) || '--';
       DELIMITTER := ', ';
       I          := I + 1;
@@ -1109,14 +1202,32 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     FOR C IN TABLE_COLUMNS(NULL)
     LOOP
       LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER ||
-                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
+                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
                     TO_CHAR(I) || '--';
       DELIMITTER := ', ';
       I          := I + 1;
     END LOOP;
     --insert parameters>
-    LV_RESULT := LV_RESULT || CHR(10) || ');' || CHR(10) || 'EXCEPTION' ||
-                 CHR(10) || ' WHEN OTHERS THEN ' || CHR(10) ||
+    LV_RESULT := LV_RESULT || CHR(10) || ');';
+  
+    -- <fill return key parameters
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(C_IS_PK)
+    LOOP
+      IF (C.IS_PK = 1)
+      THEN
+        LV_RESULT  := LV_RESULT || CHR(10) ||
+                      CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ':=' ||
+                      CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || ';';
+        DELIMITTER := '';
+      END IF;
+      I := I + 1;
+    END LOOP;
+    --fill return key parameters>
+  
+    LV_RESULT := LV_RESULT || 'EXCEPTION' || CHR(10) ||
+                 ' WHEN OTHERS THEN ' || CHR(10) ||
                  'LV_RESULT := ''{—òÊ—œÌ œ— ' || TABLE_COMMENT_FUN ||
                  ' œ—Ã ‰‘œ}'';' || CHR(10) || 'END;' || CHR(10) ||
                  'END IF;';
@@ -1125,7 +1236,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_REMOVE_DECLARATION RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -1150,15 +1261,35 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     LV_RESULT := LV_RESULT || ') RETURN VARCHAR2';
     RETURN UPPER(TRIM(LV_RESULT));
   END;
+
   FUNCTION CREATE_REMOVE_BODY RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
     LV_RESULT := LV_RESULT || CREATE_REMOVE_DECLARATION || ' is ' ||
                  CHR(10) || 'LV_RESULT VARCHAR2(1000):='''';' || CHR(10) ||
                  'begin';
-    LV_RESULT := LV_RESULT || CHR(10) || 'BEGIN';
+    LV_RESULT := LV_RESULT || CHR(10) ||
+                 ' if lv_result is null then lv_result := ' ||
+                 CREATE_CTRL_PACKAGE_NAME(GV_TABLENAME) || '.check_lock(';
+    -- <CHECK_LOCK parameters
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(C_IS_PK)
+    LOOP
+      IF (C.IS_PK = 1)
+      THEN
+        LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER ||
+                      CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
+                      TO_CHAR(I) || '--';
+        DELIMITTER := ',';
+      END IF;
+      I := I + 1;
+    END LOOP;
+    --CHECK_LOCK parameters>
+    LV_RESULT := LV_RESULT || CHR(10) || ');end if;';
+    LV_RESULT := LV_RESULT || CHR(10) || ' if lv_result is null then BEGIN';
     LV_RESULT := LV_RESULT || CHR(10) || 'DELETE ' || GV_TABLENAME ||
                  ' WHERE ';
     -- <REMOVE parameters
@@ -1180,13 +1311,13 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
                  CHR(10) || ' WHEN OTHERS THEN ' || CHR(10) ||
                  'LV_RESULT := ''{»Â œ·Ì· «” ›«œÂ «“ —òÊ—œ œ— œÌê— Ãœ«Ê·° Õ–› ¬‰ «“ ' ||
                  TABLE_COMMENT_FUN || ' «„ò«‰Å–Ì— ‰Ì” }'';' || CHR(10) ||
-                 'END;';
+                 'END; end if;';
     LV_RESULT := LV_RESULT || CHR(10) || 'RETURN LV_RESULT;' || CHR(10) ||
                  'end;';
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_EDIT_DECLARATION RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -1200,14 +1331,6 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     LOOP
       LV_RESULT  := LV_RESULT || DELIMITTER ||
                     CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ' ' ||
-                   /*
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        --
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         CASE
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           WHEN C.IS_PK = 1 THEN
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            'IN OUT '
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         END ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        --
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        */
                     CREATE_PARAMETER_TYPE(C.COLUMN_NAME) || '--' ||
                     TO_CHAR(I) || '--' || CHR(10);
       DELIMITTER := ', ';
@@ -1217,12 +1340,41 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_EDIT_BODY RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
-    LV_RESULT := LV_RESULT || CREATE_EDIT_DECLARATION || ' is ' || CHR(10) ||
-                 'LV_RESULT VARCHAR2(1000):='''';' || CHR(10) || 'begin';
+    LV_RESULT  := LV_RESULT || CREATE_EDIT_DECLARATION || ' is ' || CHR(10);
+    LV_RESULT  := LV_RESULT || 'LV_RESULT VARCHAR2(1000):='''';' || CHR(10);
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(NULL)
+    LOOP
+      LV_RESULT  := LV_RESULT || DELIMITTER ||
+                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || ' ' ||
+                    CREATE_PARAMETER_TYPE(C.COLUMN_NAME) || ':=' ||
+                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || ';--' ||
+                    TO_CHAR(I) || CHR(10);
+      DELIMITTER := '';
+      I          := I + 1;
+    END LOOP;
+  
+    LV_RESULT := LV_RESULT || CHR(10) || 'begin' || CHR(10);
+    LV_RESULT := LV_RESULT || 'lv_result:=' ||
+                 CREATE_CTRL_PACKAGE_NAME(GV_TABLENAME) || '.initiator(--';
+    -- <parameters to initiator
+    DELIMITTER := '';
+    I          := 1;
+    FOR C IN TABLE_COLUMNS(NULL)
+    LOOP
+      LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER ||
+                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
+                    TO_CHAR(I) || '--';
+      DELIMITTER := ', ';
+      I          := I + 1;
+    END LOOP;
+    --parameters to initiator>
+    LV_RESULT := LV_RESULT || CHR(10) || ');';
     LV_RESULT := LV_RESULT || CHR(10) || 'LV_RESULT:=' ||
                  CREATE_CTRL_PACKAGE_NAME(GV_TABLENAME) || '.CHECK_DATA(';
     -- <parameters to check
@@ -1231,7 +1383,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     FOR C IN TABLE_COLUMNS(NULL)
     LOOP
       LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER ||
-                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
+                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
                     TO_CHAR(I) || '--';
       DELIMITTER := ', ';
       I          := I + 1;
@@ -1248,7 +1400,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     FOR C IN TABLE_COLUMNS(NULL)
     LOOP
       LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER || C.COLUMN_NAME || '=' ||
-                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
+                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
                     TO_CHAR(I) || '--';
       DELIMITTER := ', ';
       I          := I + 1;
@@ -1264,7 +1416,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
       THEN
         LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER || C.COLUMN_NAME || '=';
         LV_RESULT  := LV_RESULT || CHR(10) ||
-                      CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
+                      CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
                       TO_CHAR(I) || '--';
         DELIMITTER := ' AND ';
       END IF;
@@ -1280,7 +1432,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_CREATE_FILTER_VIEW_BODY RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
   BEGIN
     LV_RESULT := LV_RESULT ||
@@ -1320,14 +1472,14 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     END LOOP;
     --where clause>
     LV_RESULT := LV_RESULT || CHR(10) || '--' || CHR(10) ||
-                 '||CHR(10)||''/*''||C_DATE||''*/'';' || CHR(10) ||
-                 'APP_MAM_GLOBAL_TEMPS_PKG.EXEC_IMDT(LV_SQL);' || CHR(10) ||
-                 'END;';
+                 '||CHR(10)||CHR(47)||CHR(42)||C_DATE||||CHR(47)||CHR(47);' ||
+                 CHR(10) || 'APP_MAM_GLOBAL_TEMPS_PKG.EXEC_IMDT(LV_SQL);' ||
+                 CHR(10) || 'END;';
     RETURN UPPER(TRIM(LV_RESULT));
   END;
 
   FUNCTION CREATE_ADD_TO_FILTER_VIEW_DCLR RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -1354,7 +1506,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_ADD_TO_FILTER_VIEW_BODY RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -1490,7 +1642,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   END;
 
   FUNCTION CREATE_REMOVEFROMFILTERVIW_DC RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
     I          NUMBER;
   BEGIN
@@ -1519,7 +1671,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   END;
 
   FUNCTION CREATE_REMOVEFROMFILTERVIW_BD RETURN VARCHAR2 IS
-    LV_RESULT  VARCHAR2(32767);
+    LV_RESULT  VARCHAR2(32672);
     DELIMITTER VARCHAR2(10);
   BEGIN
     LV_RESULT := LV_RESULT || CREATE_REMOVEFROMFILTERVIW_DC || ' is';
@@ -1611,7 +1763,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_DROP_FILTER_VIEW_DECLAR RETURN VARCHAR2 IS
-    LV_RESULT VARCHAR2(32767);
+    LV_RESULT VARCHAR2(32672);
   BEGIN
     LV_RESULT := LV_RESULT ||
                  '-- DROP_FILTER_VIEW --------------------------------------' ||
@@ -1624,7 +1776,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_DROP_FILTER_VIEW_BODY RETURN VARCHAR2 IS
-    LV_RESULT VARCHAR2(32767);
+    LV_RESULT VARCHAR2(32672);
   BEGIN
     LV_RESULT := LV_RESULT || CREATE_DROP_FILTER_VIEW_DECLAR || ' is';
     LV_RESULT := LV_RESULT || CHR(10) || 'LV_SQL    VARCHAR2(4000);';
@@ -1653,7 +1805,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_COUNT_FILTER_RECORDS_DC RETURN VARCHAR2 IS
-    LV_RESULT VARCHAR2(32767);
+    LV_RESULT VARCHAR2(32672);
   BEGIN
     LV_RESULT := LV_RESULT ||
                  '-- COUNT_FILTER_RECORDS --------------------------------------' ||
@@ -1666,7 +1818,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
   FUNCTION CREATE_COUNT_FILTER_RECORDS_BD RETURN VARCHAR2 IS
-    LV_RESULT VARCHAR2(32767);
+    LV_RESULT VARCHAR2(32672);
   BEGIN
     LV_RESULT := LV_RESULT || CREATE_COUNT_FILTER_RECORDS_DC || ' is ';
     LV_RESULT := LV_RESULT || CHR(10) || 'LV_SQL VARCHAR2(200);';
@@ -1693,14 +1845,16 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   /**********************************************************************************/
   /**********************************************************************************/
   FUNCTION MAKE( --
-                TABLE_NAME        VARCHAR2
-               ,CTRL_PACKAGE_NAME OUT VARCHAR2
-               ,APP_PACKAGE_NAME  OUT VARCHAR2
+                TABLE_NAME          VARCHAR2
+               ,CTRL_PACKAGE_NAME   OUT VARCHAR2
+               ,CREATE_CTRL_PACKAGE NUMBER DEFAULT 1
+               ,APP_PACKAGE_NAME    OUT VARCHAR2
+               ,CREATE_APP_PACKAGE  NUMBER DEFAULT 1
                 --
                 ) RETURN VARCHAR2 IS
-    LV_SQL_SPEC          VARCHAR2(32767);
-    LV_SQL_BODY          VARCHAR2(32767);
-    LV_RESULT            VARCHAR2(32767);
+    LV_SQL_SPEC          VARCHAR2(32672);
+    LV_SQL_BODY          VARCHAR2(32672);
+    LV_RESULT            VARCHAR2(32672);
     LV_APP_PACKAGE_NAME  VARCHAR2(128);
     LV_CTRL_PACKAGE_NAME VARCHAR2(128);
   BEGIN
@@ -1711,6 +1865,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
       GV_TABLENAME := TABLE_NAME;
     END IF;
     IF LV_RESULT IS NULL
+       AND NVL(CREATE_CTRL_PACKAGE, 1) = 1
     THEN
       BEGIN
         LV_CTRL_PACKAGE_NAME := UPPER(TRIM(CREATE_CTRL_PACKAGE_NAME( --
@@ -1749,11 +1904,14 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
         LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) ||
                        CREATE_GET_DESCRIPTION_DCLRTN || ';';
         LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) ||
+                       CREATE_INITIATOR_DECLARATION || ';';
+        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) ||
                        CREATE_CHECK_DATA_DECLARATION || ';';
       
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) ||
                        CREATE_GET_DESCRIPTION_BODY;
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_CHECK_LOCK_BODY;
+        LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_INITIATOR_BODY;
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_CHECK_DATA_BODY;
         LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || UPPER('end;');
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) || UPPER('end;');
@@ -1776,6 +1934,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     LV_SQL_SPEC := NULL;
     LV_SQL_BODY := NULL;
     IF LV_RESULT IS NULL
+       AND NVL(CREATE_APP_PACKAGE, 1) = 1
     THEN
       BEGIN
         LV_APP_PACKAGE_NAME := UPPER(TRIM(CREATE_APP_PACKAGE_NAME( --
@@ -1811,12 +1970,6 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
         --LV_SQL_SPEC  := LV_SQL_SPEC || CHR(10) || CREATE_GETTER_SETTER_SPEC;
         --LV_SQL_BODY  := LV_SQL_BODY || CHR(10) || CREATE_GETTER_SETTER_BODY;
       
-        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || CREATE_ADD_DECLARATION || ';';
-        LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_ADD_BODY;
-        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || CREATE_REMOVE_DECLARATION || ';';
-        LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_REMOVE_BODY;
-        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || CREATE_EDIT_DECLARATION || ';';
-        LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_EDIT_BODY;
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) ||
                        CREATE_CREATE_FILTER_VIEW_BODY;
         LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) ||
@@ -1835,6 +1988,12 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
                        CREATE_COUNT_FILTER_RECORDS_DC || ';';
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) ||
                        CREATE_COUNT_FILTER_RECORDS_BD;
+        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || CREATE_ADD_DECLARATION || ';';
+        LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_ADD_BODY;
+        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || CREATE_REMOVE_DECLARATION || ';';
+        LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_REMOVE_BODY;
+        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || CREATE_EDIT_DECLARATION || ';';
+        LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_EDIT_BODY;
         LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) || UPPER('end;');
         LV_SQL_BODY := LV_SQL_BODY || CHR(10) || UPPER('end;');
         BEGIN
@@ -1898,6 +2057,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
         --DBMS_OUTPUT.PUT_LINE(CREATE_GETTER_SETTER_SPEC);
         DBMS_OUTPUT.PUT_LINE(CREATE_GET_DESCRIPTION_DCLRTN || ';');
         DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_LOCK_DECLARATION || ';');
+        DBMS_OUTPUT.PUT_LINE(CREATE_INITIATOR_DECLARATION || ';');
         DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_DATA_DECLARATION || ';');
         DBMS_OUTPUT.PUT_LINE(UPPER('end;'));
         CTRL_PACKAGE_NAME := LV_CTRL_PACKAGE_NAME;
@@ -1927,6 +2087,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
                            );
       DBMS_OUTPUT.PUT_LINE(CREATE_GET_DESCRIPTION_BODY);
       DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_LOCK_BODY);
+      DBMS_OUTPUT.PUT_LINE(CREATE_INITIATOR_BODY);
       DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_DATA_BODY);
       DBMS_OUTPUT.PUT_LINE(UPPER('end;'));
     END IF;
@@ -1975,13 +2136,13 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
                              );
         --DBMS_OUTPUT.PUT_LINE(CREATE_GETTER_SETTER_SPEC);
         --DBMS_OUTPUT.PUT_LINE(CREATE_CHECK_DATA_DECLARATION || ';');
-        DBMS_OUTPUT.PUT_LINE(CREATE_ADD_DECLARATION || ';');
-        DBMS_OUTPUT.PUT_LINE(CREATE_REMOVE_DECLARATION || ';');
-        DBMS_OUTPUT.PUT_LINE(CREATE_EDIT_DECLARATION || ';');
         DBMS_OUTPUT.PUT_LINE(CREATE_ADD_TO_FILTER_VIEW_DCLR || ';');
         DBMS_OUTPUT.PUT_LINE(CREATE_REMOVEFROMFILTERVIW_DC || ';');
         DBMS_OUTPUT.PUT_LINE(CREATE_DROP_FILTER_VIEW_DECLAR || ';');
         DBMS_OUTPUT.PUT_LINE(CREATE_COUNT_FILTER_RECORDS_DC || ';');
+        DBMS_OUTPUT.PUT_LINE(CREATE_ADD_DECLARATION || ';');
+        DBMS_OUTPUT.PUT_LINE(CREATE_REMOVE_DECLARATION || ';');
+        DBMS_OUTPUT.PUT_LINE(CREATE_EDIT_DECLARATION || ';');
         DBMS_OUTPUT.PUT_LINE(UPPER('end;'));
         APP_PACKAGE_NAME := LV_APP_PACKAGE_NAME;
       END IF;
@@ -2011,14 +2172,14 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
                            );
       --DBMS_OUTPUT.PUT_LINE(CREATE_GLOBAL_VARIABLES_BODY);
       --DBMS_OUTPUT.PUT_LINE(CREATE_GETTER_SETTER_BODY);
-      DBMS_OUTPUT.PUT_LINE(CREATE_ADD_BODY);
-      DBMS_OUTPUT.PUT_LINE(CREATE_REMOVE_BODY);
-      DBMS_OUTPUT.PUT_LINE(CREATE_EDIT_BODY);
       DBMS_OUTPUT.PUT_LINE(CREATE_CREATE_FILTER_VIEW_BODY);
       DBMS_OUTPUT.PUT_LINE(CREATE_ADD_TO_FILTER_VIEW_BODY);
       DBMS_OUTPUT.PUT_LINE(CREATE_REMOVEFROMFILTERVIW_BD);
       DBMS_OUTPUT.PUT_LINE(CREATE_DROP_FILTER_VIEW_BODY);
       DBMS_OUTPUT.PUT_LINE(CREATE_COUNT_FILTER_RECORDS_BD);
+      DBMS_OUTPUT.PUT_LINE(CREATE_ADD_BODY);
+      DBMS_OUTPUT.PUT_LINE(CREATE_REMOVE_BODY);
+      DBMS_OUTPUT.PUT_LINE(CREATE_EDIT_BODY);
       DBMS_OUTPUT.PUT_LINE(UPPER('end;'));
     END IF;
     RETURN LV_RESULT;
