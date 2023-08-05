@@ -1227,6 +1227,17 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
 
+  FUNCTION CREATE_LOGGER_VIEW_NAME RETURN CLOB /*VARCHAR2*/
+   IS
+    LV_RESULT CLOB; --VARCHAR2(32672);
+  BEGIN
+    LV_RESULT := LV_RESULT || CHR(10) ||
+                 'c_LOGGER_VIEW_NAME  CONSTANT varchar2(30):= ' || CHR(39) ||
+                 MAKE_RANDOM_VIEW_NAME(GV_TABLENAME) || CHR(39) || ';' ||
+                 CHR(10);
+    RETURN UPPER(TRIM(LV_RESULT));
+  END;
+
   FUNCTION CREATE_LOGGER_DECLARATION RETURN CLOB /*VARCHAR2*/
    IS
     LV_RESULT  CLOB; --VARCHAR2(32672);
@@ -1258,8 +1269,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
   BEGIN
     LV_RESULT  := LV_RESULT || CREATE_LOGGER_DECLARATION || ' is ' ||
                   CHR(10) ||
-                  ' LV_SQL VARCHAR2(32767); begin begin LV_SQL :=''CREATE OR REPLACE VIEW ' ||
-                  MAKE_RANDOM_VIEW_NAME(GV_TABLENAME) || ' as SELECT '';' ||
+                  ' LV_SQL VARCHAR2(32767); begin begin LV_SQL :=''CREATE OR REPLACE VIEW ''||c_LOGGER_VIEW_NAME ||'' as SELECT '';' ||
                   CHR(10);
     DELIMITTER := '';
     I          := 1;
@@ -2235,6 +2245,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
                                                       ,'BODY'
                                                        --
                                                        );
+        LV_SQL_SPEC  := LV_SQL_SPEC || CHR(10) || CREATE_LOGGER_VIEW_NAME;
         --LV_SQL_BODY  := LV_SQL_BODY || CHR(10) || CREATE_GLOBAL_VARIABLES_BODY;
         --LV_SQL_SPEC  := LV_SQL_SPEC || CHR(10) || CREATE_GETTER_SETTER_SPEC;
         --LV_SQL_BODY  := LV_SQL_BODY || CHR(10) || CREATE_GETTER_SETTER_BODY;
