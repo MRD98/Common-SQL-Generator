@@ -1238,6 +1238,26 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     RETURN UPPER(TRIM(LV_RESULT));
   END;
 
+  FUNCTION CREATE_GET_LOGGER_VIEW_NAMEDCL RETURN CLOB /*VARCHAR2*/
+   IS
+    LV_RESULT CLOB;
+  BEGIN
+    LV_RESULT := LV_RESULT || '-- GET_LOGGER_VIEW_NAME' || CV_BEAUTY_DASH ||
+                 CHR(10);
+    LV_RESULT := LV_RESULT ||
+                 'FUNCTION GET_LOGGER_VIEW_NAME RETURN VARCHAR2';
+    RETURN UPPER(TRIM(LV_RESULT));
+  END;
+
+  FUNCTION CREATE_GET_LOGGER_VIEW_NAME_BD RETURN CLOB /*VARCHAR2*/
+   IS
+    LV_RESULT CLOB;
+  BEGIN
+    LV_RESULT := LV_RESULT || CREATE_GET_LOGGER_VIEW_NAMEDCL ||
+                 ' is begin return c_LOGGER_VIEW_NAME; end;' || CHR(10);
+    RETURN UPPER(TRIM(LV_RESULT));
+  END;
+
   FUNCTION CREATE_LOGGER_DECLARATION RETURN CLOB /*VARCHAR2*/
    IS
     LV_RESULT  CLOB; --VARCHAR2(32672);
@@ -1364,7 +1384,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     FOR C IN TABLE_COLUMNS(NULL)
     LOOP
       LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER ||
-                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
+                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
                     TO_CHAR(I) || '--';
       DELIMITTER := ', ';
       I          := I + 1;
@@ -1596,7 +1616,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     FOR C IN TABLE_COLUMNS(NULL)
     LOOP
       LV_RESULT  := LV_RESULT || CHR(10) || DELIMITTER ||
-                    CREATE_LOCAL_VARIABLE_NAME(C.COLUMN_NAME) || '--' ||
+                    CREATE_PARAMETER_NAME(C.COLUMN_NAME) || '--' ||
                     TO_CHAR(I) || '--';
       DELIMITTER := ', ';
       I          := I + 1;
@@ -2245,8 +2265,12 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
                                                       ,'BODY'
                                                        --
                                                        );
-        LV_SQL_SPEC  := LV_SQL_SPEC || CHR(10) || CREATE_LOGGER_VIEW_NAME;
         --LV_SQL_BODY  := LV_SQL_BODY || CHR(10) || CREATE_GLOBAL_VARIABLES_BODY;
+        LV_SQL_SPEC := LV_SQL_SPEC || CHR(10) ||
+                       CREATE_GET_LOGGER_VIEW_NAMEDCL || ';';
+        LV_SQL_BODY := LV_SQL_BODY || CHR(10) || CREATE_LOGGER_VIEW_NAME;
+        LV_SQL_BODY := LV_SQL_BODY || CHR(10) ||
+                       CREATE_GET_LOGGER_VIEW_NAME_BD;
         --LV_SQL_SPEC  := LV_SQL_SPEC || CHR(10) || CREATE_GETTER_SETTER_SPEC;
         --LV_SQL_BODY  := LV_SQL_BODY || CHR(10) || CREATE_GETTER_SETTER_BODY;
       
