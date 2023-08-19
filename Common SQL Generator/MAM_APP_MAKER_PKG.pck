@@ -1475,7 +1475,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     LV_RESULT := LV_RESULT || 'EXCEPTION' || CHR(10) ||
                  ' WHEN OTHERS THEN ' || CHR(10) ||
                  'LV_RESULT := ''{—òÊ—œÌ œ— ' || TABLE_COMMENT_FUN ||
-                 ' œ—Ã ‰‘œ}'';' || CHR(10) || 'END;' || CHR(10) ||
+                 ' œ—Ã ‰‘œ: ''||sqlerrm||''}'';' || CHR(10) || 'END;' || CHR(10) ||
                  'END IF;';
     LV_RESULT := LV_RESULT || CHR(10) || 'RETURN LV_RESULT;' || CHR(10) ||
                  'end;';
@@ -1557,7 +1557,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     LV_RESULT := LV_RESULT || CHR(10) || ';' || CHR(10) || 'EXCEPTION' ||
                  CHR(10) || ' WHEN OTHERS THEN ' || CHR(10) ||
                  'LV_RESULT := ''{»Â œ·Ì· «” ›«œÂ «“ —òÊ—œ œ— œÌê— Ãœ«Ê·° Õ–› ¬‰ «“ ' ||
-                 TABLE_COMMENT_FUN || ' «„ò«‰Å–Ì— ‰Ì” }'';' || CHR(10) ||
+                 TABLE_COMMENT_FUN || ' «„ò«‰Å–Ì— ‰Ì” : ''||sqlerrm||''}'';' || CHR(10) ||
                  'END; end if;';
     LV_RESULT := LV_RESULT || CHR(10) || 'RETURN LV_RESULT;' || CHR(10) ||
                  'end;';
@@ -1717,7 +1717,7 @@ CREATE OR REPLACE PACKAGE BODY MAM_APP_MAKER_PKG IS
     --edit parameters>
     LV_RESULT := LV_RESULT || CHR(10) || ';' || CHR(10) || 'EXCEPTION' ||
                  CHR(10) || ' WHEN OTHERS THEN ' || CHR(10) ||
-                 'LV_RESULT := ''{ €ÌÌ—Ì œ— —òÊ—œ ’Ê—  ‰ê—› }'';' ||
+                 'LV_RESULT := ''{ €ÌÌ—Ì œ— —òÊ—œ ’Ê—  ‰ê—› : ''||sqlerrm||''}'';' ||
                  CHR(10) || 'END;' || CHR(10) || 'END IF;';
     LV_RESULT := LV_RESULT || CHR(10) || 'RETURN LV_RESULT;' || CHR(10) ||
                  'end;';
